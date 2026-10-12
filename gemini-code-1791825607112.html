@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SetClassify — Multi-Dataset & Diagram Venn Lengkap</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<style>
+.app-page { display: none; min-height: 100vh; padding-bottom: 80px; }
+.app-page.active { display: block; }
+</style>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#15803d",
+        "surface-card": "#FFFFFF",
+        "background-canvas": "#F8FAF9",
+        "text-primary": "#141e17",
+        "text-muted": "#64748b"
+      }
+    }
+  }
+};
+</script>
+</head>
+<body class="bg-background-canvas font-['Plus_Jakarta_Sans'] text-text-primary antialiased">
+<div id="app">
+
+  <!-- HEADER GLOBAL -->
+  <header class="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-emerald-950/5 shadow-xs">
+    <div class="h-16 px-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 to-green-700 text-white flex items-center justify-center font-bold text-lg shadow-sm">∩</div>
+        <div class="flex flex-col">
+          <div class="flex items-center gap-1">
+            <span class="font-bold text-text-primary tracking-tight">SetClassify</span>
+            <span id="active-dataset-badge" class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/65 text-[10px] font-bold">Dataset Mahasiswa</span>
+          </div>
+          <span class="text-[11px] text-text-muted">PJBL-2 Matematika Diskrit</span>
+        </div>
+      </div>
+      
+      <!-- PILIH DATASET SWITCHER (Mahasiswa vs Dosen) -->
+      <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button onclick="switchDataset(1)" id="btn-ds1" class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-white text-emerald-700 shadow-xs">Mahasiswa</button>
+        <button onclick="switchDataset(2)" id="btn-ds2" class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-emerald-700">Dosen</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HALAMAN 1: DASHBOARD -->
+  <section class="app-page active" id="page-dashboard">
+    <main class="flex-1 flex flex-col pt-20 px-4 pb-12 gap-5">
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+          <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider">Dashboard Analisis Himpunan</span>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-text-primary" id="dash-title">Dataset Mahasiswa</h1>
+        <p class="text-sm text-text-muted" id="dash-desc">Sistem klasifikasi data mahasiswa dan simulasi operasi himpunan diskrit.</p>
+      </div>
+
+      <!-- Quick Stats Card -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-surface-card rounded-2xl p-4 border border-emerald-100 shadow-sm">
+          <span class="text-xs text-emerald-800 font-bold uppercase tracking-wider">Semesta (U)</span>
+          <div class="text-2xl font-bold mt-1" id="stat-u-count">8</div>
+          <p class="text-xs text-text-muted mt-0.5" id="stat-u-label">Total Mahasiswa</p>
+        </div>
+        <div class="bg-surface-card rounded-2xl p-4 border border-green-100 shadow-sm">
+          <span class="text-xs text-green-800 font-bold uppercase tracking-wider" id="label-stat-a">Himpunan A</span>
+          <div class="text-2xl font-bold mt-1" id="stat-a-count">0</div>
+          <p class="text-xs text-text-muted mt-0.5" id="stat-desc-a">Nilai ≥ 80</p>
+        </div>
+        <div class="bg-surface-card rounded-2xl p-4 border border-teal-100 shadow-sm">
+          <span class="text-xs text-teal-800 font-bold uppercase tracking-wider" id="label-stat-b">Himpunan B</span>
+          <div class="text-2xl font-bold mt-1" id="stat-b-count">0</div>
+          <p class="text-xs text-text-muted mt-0.5" id="stat-desc-b">Aktif Organisasi</p>
+        </div>
+        <div class="bg-surface-card rounded-2xl p-4 border border-sky-100 shadow-sm">
+          <span class="text-xs text-sky-800 font-bold uppercase tracking-wider" id="label-stat-c">Himpunan C</span>
+          <div class="text-2xl font-bold mt-1" id="stat-c-count">0</div>
+          <p class="text-xs text-text-muted mt-0.5" id="stat-desc-c">Kehadiran ≥ 80%</p>
+        </div>
+      </div>
+
+      <div class="bg-emerald-50/70 border border-emerald-200/70 rounded-2xl p-4 flex flex-col gap-3">
+        <h3 class="font-bold text-sm text-emerald-900 flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-700">info</span>
+          Fitur Diagram Venn & Inklusi-Eksklusi
+        </h3>
+        <p class="text-xs text-emerald-800 leading-relaxed">
+          Uji simulasi himpunan lengkap dengan Diagram Venn visual interaktif serta pembuktian Prinsip Inklusi-Eksklusi untuk 2 dan 3 himpunan.
+        </p>
+        <button onclick="switchTab('operasi')" class="w-full py-2.5 bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-sm hover:bg-emerald-800 transition-all">
+          Buka Kalkulator & Diagram Venn →
+        </button>
+      </div>
+    </main>
+  </section>
+
+  <!-- HALAMAN 2: DATASET -->
+  <section class="app-page" id="page-dataset">
+    <main class="flex-1 flex flex-col pt-20 px-4 pb-12 gap-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider">Manajemen Data</span>
+          <h1 class="text-2xl font-bold tracking-tight" id="dataset-main-title">Dataset Mahasiswa</h1>
+        </div>
+        <span id="dataset-name-label" class="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-lg">Mahasiswa</span>
+      </div>
+      <p class="text-xs text-text-muted" id="dataset-main-desc">Daftar anggota himpunan semesta ($U$) beserta atribut akademik.</p>
+
+      <!-- Search Input -->
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-lg">search</span>
+        <input id="search-input" oninput="renderDatasetList()" type="text" placeholder="Cari nama atau nomor induk..." class="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600 shadow-xs">
+      </div>
+
+      <!-- List Container -->
+      <div id="dataset-cards-container" class="flex flex-col gap-2.5">
+        <!-- Rendered via JS -->
+      </div>
+    </main>
+  </section>
+
+  <!-- HALAMAN 3: OPERASI HIMPUNAN & PRINSIP INKLUSI-EKSKLUSI -->
+  <section class="app-page" id="page-operasi">
+    <main class="flex-1 flex flex-col pt-20 px-4 pb-16 gap-5">
+      <div>
+        <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider">Kalkulator Diskrit</span>
+        <h1 class="text-2xl font-bold tracking-tight">Operasi, Venn & Inklusi-Eksklusi</h1>
+        <p class="text-xs text-text-muted mt-0.5">Analisis hubungan himpunan dengan visualisasi Diagram Venn interaktif.</p>
+      </div>
+
+      <!-- Mode Selector: Operasi Dasar vs Prinsip Inklusi-Eksklusi -->
+      <div class="grid grid-cols-2 gap-2 bg-slate-200/70 p-1 rounded-xl">
+        <button onclick="switchOpMode('standard')" id="tab-mode-std" class="py-2 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs transition-all">Operasi Dasar & Venn</button>
+        <button onclick="switchOpMode('pie')" id="tab-mode-pie" class="py-2 rounded-lg text-xs font-semibold text-slate-600 transition-all">Prinsip Inklusi-Eksklusi</button>
+      </div>
+
+      <!-- KONTEN MODE 1: OPERASI DASAR & VENN -->
+      <div id="panel-standard-op" class="flex flex-col gap-4">
+        <div class="bg-surface-card rounded-2xl border border-emerald-100 p-4 shadow-sm flex flex-col gap-3">
+          <h3 class="font-bold text-sm text-text-primary">Pilih Operator Himpunan</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <select id="op-set1" onchange="runStandardOperation()" class="h-10 px-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold">
+              <option value="A">Himpunan A</option>
+              <option value="B">Himpunan B</option>
+              <option value="C">Himpunan C</option>
+            </select>
+            <select id="op-type" onchange="runStandardOperation()" class="h-10 px-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-900">
+              <option value="INTERSECTION">Irisan (∩)</option>
+              <option value="UNION">Gabungan (∪)</option>
+              <option value="DIFFERENCE">Selisih (-)</option>
+              <option value="SYM_DIFF">Beda Simetris (Δ)</option>
+            </select>
+            <select id="op-set2" onchange="runStandardOperation()" class="h-10 px-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold">
+              <option value="A">Himpunan A</option>
+              <option value="B" selected>Himpunan B</option>
+              <option value="C">Himpunan C</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- DIAGRAM VENN UTAMA YANG DIPERTAHANKAN & INTERAKTIF -->
+        <div class="bg-surface-card rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col items-center gap-3">
+          <div class="flex items-center justify-between w-full">
+            <h3 id="venn-title" class="font-bold text-xs text-text-muted uppercase">Diagram Venn: A ∩ B</h3>
+            <span id="venn-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">0 Anggota</span>
+          </div>
+          <div class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden">
+            <div class="w-full max-w-[320px] aspect-[4/3] relative flex items-center justify-center">
+              <svg class="w-full h-full select-none" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <pattern id="hatch" width="6" height="6" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                    <line x1="0" y1="0" x2="0" y2="6" stroke="#15803d" stroke-width="1.2" opacity="0.35"/>
+                  </pattern>
+                </defs>
+                <!-- Universe Box -->
+                <rect x="6" y="6" width="308" height="208" rx="14" fill="#F0FDF4" fill-opacity="0.5" stroke="#86EFAC" stroke-dasharray="4 3" stroke-width="1"/>
+                <text x="20" y="26" fill="#15803d" font-size="11" font-weight="700">U (8)</text>
+
+                <!-- Circle Set 1 (Left) -->
+                <circle id="circle-left" cx="120" cy="115" r="76" fill="#ECFDF5" fill-opacity="0.85" stroke="#15803d" stroke-width="2.5"/>
+
+                <!-- Circle Set 2 (Right) -->
+                <circle id="circle-right" cx="200" cy="115" r="76" fill="#F0FDFA" fill-opacity="0.80" stroke="#0f766e" stroke-width="2.5"/>
+
+                <!-- Intersection Clip & Shading -->
+                <clipPath id="clipLeft">
+                  <circle cx="120" cy="115" r="76"/>
+                </clipPath>
+                <circle id="venn-intersection" cx="200" cy="115" r="76" clip-path="url(#clipLeft)" fill="#BBF7D0" fill-opacity="0.8"/>
+                <circle cx="200" cy="115" r="76" clip-path="url(#clipLeft)" fill="url(#hatch)"/>
+
+                <!-- Labels & Counts -->
+                <text id="label-set1" x="75" y="62" fill="#15803d" font-size="12" font-weight="700">A (7)</text>
+                <text id="val-only-left" x="88" y="118" fill="#166534" font-size="16" font-weight="700" text-anchor="middle">2</text>
+
+                <!-- Intersection Center Badge -->
+                <circle cx="160" cy="115" r="22" fill="#FFFFFF" fill-opacity="0.95" stroke="#86EFAC" stroke-width="1.5"/>
+                <text id="val-intersection" x="160" y="114" fill="#15803d" font-size="18" font-weight="700" text-anchor="middle">5</text>
+
+                <!-- Set 2 Label -->
+                <text id="label-set2" x="245" y="62" fill="#0f766e" font-size="12" font-weight="700">B (6)</text>
+                <text id="val-only-right" x="232" y="118" fill="#0f766e" font-size="16" font-weight="700" text-anchor="middle">1</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daftar Anggota Hasil -->
+        <div class="bg-surface-card rounded-2xl border border-emerald-100 p-4 shadow-sm flex flex-col gap-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h3 class="font-bold text-sm">Anggota Hasil Operasi</h3>
+            <span id="result-count-label" class="text-xs font-bold text-emerald-700">0 Anggota</span>
+          </div>
+          <div id="standard-result-list" class="flex flex-col gap-2 max-h-60 overflow-y-auto">
+            <!-- Dynamic items -->
+          </div>
+        </div>
+      </div>
+
+      <!-- KONTEN MODE 2: PRINSIP INKLUSI-EKSKLUSI -->
+      <div id="panel-pie-op" class="flex flex-col gap-4 hidden">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col gap-2">
+          <h3 class="font-bold text-sm text-emerald-900">Pilih Ruang Lingkup Inklusi-Eksklusi</h3>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <button onclick="setPIEMode(2)" id="pie-btn-2" class="py-2 px-3 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all">2 Himpunan (A ∪ B)</button>
+            <button onclick="setPIEMode(3)" id="pie-btn-3" class="py-2 px-3 rounded-xl bg-white text-emerald-800 border border-emerald-200 font-semibold text-xs shadow-xs transition-all">3 Himpunan (A ∪ B ∪ C)</button>
+          </div>
+        </div>
+
+        <!-- Kalkulasi 2 atau 3 Himpunan -->
+        <div id="pie-calc-container" class="bg-surface-card rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col gap-3">
+          <!-- Dynamic rendered via JS -->
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- HALAMAN 4: TENTANG KELOMPOK -->
+  <section class="app-page" id="page-tentang">
+    <main class="flex-1 flex flex-col pt-20 px-4 pb-16 gap-4">
+      <div>
+        <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider">Project-Based Learning 2</span>
+        <h1 class="text-2xl font-bold tracking-tight">Tim Pengembang</h1>
+        <p class="text-xs text-text-muted">Aplikasi SetClassify Matematika Diskrit.</p>
+      </div>
+      <div class="bg-surface-card rounded-2xl p-4 border border-emerald-100 shadow-sm flex flex-col gap-3">
+        <h2 class="font-bold text-sm text-text-primary border-b border-slate-100 pb-2">Anggota Kelompok</h2>
+        <div class="flex flex-col gap-2.5">
+          <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center text-xs">01</div>
+            <div><div class="font-bold text-sm">Farah Naajiah</div><div class="text-xs text-text-muted font-mono">NIM: 25210167</div></div>
+          </div>
+          <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center text-xs">02</div>
+            <div><div class="font-bold text-sm">Yasir Alkausar</div><div class="text-xs text-text-muted font-mono">NIM: 25210173</div></div>
+          </div>
+          <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center text-xs">03</div>
+            <div><div class="font-bold text-sm">Wasykur</div><div class="text-xs text-text-muted font-mono">NIM: 25210044</div></div>
+          </div>
+          <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center text-xs">04</div>
+            <div><div class="font-bold text-sm">Rindi Saskia</div><div class="text-xs text-text-muted font-mono">NIM: 25210235</div></div>
+          </div>
+          <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+            <div class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-bold flex items-center justify-center text-xs">05</div>
+            <div><div class="font-bold text-sm">Ubay Dillah</div><div class="text-xs text-text-muted font-mono">NIM: 25210274</div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- NAVIGASI BOTTOM GLOBAL -->
+  <nav class="fixed bottom-0 w-full z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-lg">
+    <div class="h-16 grid grid-cols-4 items-center px-2">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex flex-col items-center justify-center gap-1 text-emerald-700 font-bold text-xs">
+        <span class="material-symbols-outlined text-xl">grid_view</span>
+        <span>Dashboard</span>
+      </button>
+      <button onclick="switchTab('dataset')" id="nav-dataset" class="nav-btn flex flex-col items-center justify-center gap-1 text-text-muted hover:text-emerald-700 text-xs">
+        <span class="material-symbols-outlined text-xl">table_chart</span>
+        <span>Dataset</span>
+      </button>
+      <button onclick="switchTab('operasi')" id="nav-operasi" class="nav-btn flex flex-col items-center justify-center gap-1 text-text-muted hover:text-emerald-700 text-xs">
+        <span class="material-symbols-outlined text-xl">calculate</span>
+        <span>Operasi & Venn</span>
+      </button>
+      <button onclick="switchTab('tentang')" id="nav-tentang" class="nav-btn flex flex-col items-center justify-center gap-1 text-text-muted hover:text-emerald-700 text-xs">
+        <span class="material-symbols-outlined text-xl">info</span>
+        <span>Tentang</span>
+      </button>
+    </div>
+  </nav>
+
+</div>
+
+<script>
+// ==================== DUA DATASET BERBEDA (MAHASISWA & DOSEN) ====================
+const DATASETS = {
+  1: {
+    name: "Mahasiswa",
+    type: "mahasiswa",
+    unitName: "Total Mahasiswa",
+    students: [
+      { id: '01', nama: 'Farah Naajiah', idNum: '25210167', p1: 88, p2: 92, attr3: 'Ya', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' },
+      { id: '02', nama: 'Yasir Alkausar', idNum: '25210173', p1: 94, p2: 94, attr3: 'Ya', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' },
+      { id: '03', nama: 'Wasykur', idNum: '25210044', p1: 90, p2: 95, attr3: 'Ya', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' },
+      { id: '04', nama: 'Rindi Saskia', idNum: '25210235', p1: 82, p2: 88, attr3: 'Tidak', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' },
+      { id: '05', nama: 'Ubay Dillah', idNum: '25210274', p1: 94, p2: 90, attr3: 'Ya', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' },
+      { id: '06', nama: 'Ahmad Fauzi', idNum: '25210512', p1: 80, p2: 81, attr3: 'Ya', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' },
+      { id: '07', nama: 'Dewa Pratama', idNum: '25210678', p1: 86, p2: 75, attr3: 'Ya', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' },
+      { id: '08', nama: 'Lestari Putri', idNum: '25210789', p1: 76, p2: 82, attr3: 'Tidak', label1: 'Nilai', label2: 'Kehadiran', label3: 'Organisasi' }
+    ]
+  },
+  2: {
+    name: "Dosen",
+    type: "dosen",
+    unitName: "Total Dosen",
+    students: [
+      { id: '01', nama: 'Dr. Ir. H. Arifin, M.T.', idNum: 'NIDN: 0012038001', p1: 15, p2: 'Profesor', attr3: 'AI & Data Science', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' },
+      { id: '02', nama: 'Dr. Nurul Hidayah, M.Kom.', idNum: 'NIDN: 0021058502', p1: 10, p2: 'Lektor Kepala', attr3: 'Matematika Diskrit', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' },
+      { id: '03', nama: 'Fikri Haikal, Ph.D.', idNum: 'NIDN: 0009129003', p1: 6, p2: 'Lektor', attr3: 'Kriptografi', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' },
+      { id: '04', nama: 'Siti Aminah, M.Sc.', idNum: 'NIDN: 0015088804', p1: 8, p2: 'Lektor', attr3: 'AI & Data Science', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' },
+      { id: '05', nama: 'Prof. Dr. Hendra Gunawan', idNum: 'NIDN: 0030117005', p1: 22, p2: 'Profesor', attr3: 'Matematika Murni', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' },
+      { id: '06', nama: 'Rahmat Hidayat, M.T.', idNum: 'NIDN: 0025049206', p1: 4, p2: 'Asisten Ahli', attr3: 'Jaringan Komputer', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' },
+      { id: '07', nama: 'Dewi Sartika, M.Kom.', idNum: 'NIDN: 0018078907', p1: 9, p2: 'Lektor', attr3: 'Matematika Diskrit', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' },
+      { id: '08', nama: 'Arief Rahman, Ph.D.', idNum: 'NIDN: 0004028308', p1: 12, p2: 'Lektor Kepala', attr3: 'Kriptografi', label1: 'Masa Kerja (Thn)', label2: 'Jabatan', label3: 'Bidang Keahlian' }
+    ]
+  }
+};
+
+let currentDatasetId = 1;
+let currentPIEMode = 2; // 2 or 3 sets
+
+function getActiveDataset() {
+  return DATASETS[currentDatasetId].students;
+}
+
+function switchDataset(dsId) {
+  currentDatasetId = dsId;
+  const dsMeta = DATASETS[dsId];
+  
+  document.getElementById('btn-ds1').className = dsId === 1 ? "px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-white text-emerald-700 shadow-xs" : "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-emerald-700";
+  document.getElementById('btn-ds2').className = dsId === 2 ? "px-2.5 py-1 rounded-lg text-xs font-bold transition-all bg-white text-emerald-700 shadow-xs" : "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all text-slate-600 hover:text-emerald-700";
+  
+  document.getElementById('active-dataset-badge').innerText = `Dataset ${dsMeta.name}`;
+  document.getElementById('dataset-name-label').innerText = dsMeta.name;
+  document.getElementById('dataset-main-title').innerText = `Dataset ${dsMeta.name}`;
+  document.getElementById('dash-title').innerText = `Dataset ${dsMeta.name}`;
+  document.getElementById('dash-desc').innerText = `Sistem klasifikasi data ${dsMeta.name.toLowerCase()} dan simulasi operasi himpunan diskrit.`;
+  document.getElementById('stat-u-label').innerText = dsMeta.unitName;
+
+  if (dsId === 1) {
+    document.getElementById('label-stat-a').innerText = 'Himpunan A';
+    document.getElementById('stat-desc-a').innerText = 'Nilai ≥ 80';
+    document.getElementById('label-stat-b').innerText = 'Himpunan B';
+    document.getElementById('stat-desc-b').innerText = 'Aktif Organisasi';
+    document.getElementById('label-stat-c').innerText = 'Himpunan C';
+    document.getElementById('stat-desc-c').innerText = 'Kehadiran ≥ 80%';
+  } else {
+    document.getElementById('label-stat-a').innerText = 'Himpunan A';
+    document.getElementById('stat-desc-a').innerText = 'Masa Kerja ≥ 8 Thn';
+    document.getElementById('label-stat-b').innerText = 'Himpunan B';
+    document.getElementById('stat-desc-b').innerText = 'Jabatan Lektor/Prof';
+    document.getElementById('label-stat-c').innerText = 'Himpunan C';
+    document.getElementById('stat-desc-c').innerText = 'Keahlian AI/Diskrit';
+  }
+
+  updateDashboardStats();
+  renderDatasetList();
+  runStandardOperation();
+  renderPIECalculation();
+}
+
+function getSetMembers(setName) {
+  const ds = getActiveDataset();
+  if (currentDatasetId === 1) {
+    if (setName === 'A') return ds.filter(m => m.p1 >= 80);
+    if (setName === 'B') return ds.filter(m => m.attr3 === 'Ya');
+    if (setName === 'C') return ds.filter(m => m.p2 >= 80);
+  } else {
+    if (setName === 'A') return ds.filter(d => d.p1 >= 8);
+    if (setName === 'B') return ds.filter(d => d.p2 === 'Lektor' || d.p2 === 'Lektor Kepala' || d.p2 === 'Profesor');
+    if (setName === 'C') return ds.filter(d => d.attr3 === 'AI & Data Science' || d.attr3 === 'Matematika Diskrit');
+  }
+  return ds;
+}
+
+function updateDashboardStats() {
+  const ds = getActiveDataset();
+  document.getElementById('stat-u-count').innerText = ds.length;
+  document.getElementById('stat-a-count').innerText = getSetMembers('A').length;
+  document.getElementById('stat-b-count').innerText = getSetMembers('B').length;
+  document.getElementById('stat-c-count').innerText = getSetMembers('C').length;
+}
+
+function renderDatasetList() {
+  const query = document.getElementById('search-input').value.toLowerCase();
+  const ds = getActiveDataset().filter(m => m.nama.toLowerCase().includes(query) || m.idNum.toLowerCase().includes(query));
+  
+  const container = document.getElementById('dataset-cards-container');
+  if (ds.length === 0) {
+    container.innerHTML = `<div class="p-6 text-center text-text-muted text-xs italic bg-white rounded-2xl border border-slate-200">Data tidak ditemukan.</div>`;
+    return;
+  }
+
+  container.innerHTML = ds.map(m => `
+    <div class="bg-surface-card border border-slate-200/90 rounded-2xl p-3.5 shadow-xs flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0">${m.id}</div>
+        <div>
+          <h4 class="font-bold text-sm text-text-primary leading-tight">${m.nama}</h4>
+          <span class="text-xs text-text-muted font-mono">${m.idNum}</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold">${m.label1}: ${m.p1}</span>
+        <span class="px-2 py-0.5 rounded-lg bg-teal-50 text-teal-800 text-[11px] font-bold">${m.p2}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ==================== OPERASI DASAR & DIAGRAM VENN ====================
+function runStandardOperation() {
+  const s1Name = document.getElementById('op-set1').value;
+  const s2Name = document.getElementById('op-set2').value;
+  const opType = document.getElementById('op-type').value;
+
+  const set1 = getSetMembers(s1Name);
+  const set2 = getSetMembers(s2Name);
+
+  const ids1 = new Set(set1.map(m => m.id));
+  const ids2 = new Set(set2.map(m => m.id));
+
+  let resultIds = [];
+  let symbol = '∩';
+  if (opType === 'INTERSECTION') { symbol = '∩'; resultIds = [...ids1].filter(id => ids2.has(id)); }
+  else if (opType === 'UNION') { symbol = '∪'; resultIds = Array.from(new Set([...ids1, ...ids2])); }
+  else if (opType === 'DIFFERENCE') { symbol = '-'; resultIds = [...ids1].filter(id => !ids2.has(id)); }
+  else if (opType === 'SYM_DIFF') {
+    symbol = 'Δ';
+    const o1 = [...ids1].filter(id => !ids2.has(id));
+    const o2 = [...ids2].filter(id => !ids1.has(id));
+    resultIds = [...o1, ...o2];
+  }
+
+  const resultStudents = getActiveDataset().filter(m => resultIds.includes(m.id));
+
+  // Update Diagram Venn Values & Shading
+  const onlyLeftCount = [...ids1].filter(id => !ids2.has(id)).length;
+  const intersectionCount = [...ids1].filter(id => ids2.has(id)).length;
+  const onlyRightCount = [...ids2].filter(id => !ids1.has(id)).length;
+
+  document.getElementById('venn-title').innerText = `Diagram Venn: ${s1Name} ${symbol} ${s2Name}`;
+  document.getElementById('venn-badge').innerText = `${resultStudents.length} Anggota`;
+
+  document.getElementById('label-set1').innerText = `${s1Name} (${set1.length})`;
+  document.getElementById('label-set2').innerText = `${s2Name} (${set2.length})`;
+
+  document.getElementById('val-only-left').innerText = onlyLeftCount;
+  document.getElementById('val-intersection').innerText = intersectionCount;
+  document.getElementById('val-only-right').innerText = onlyRightCount;
+
+  const intersectionCircle = document.getElementById('venn-intersection');
+  const circleLeft = document.getElementById('circle-left');
+  const circleRight = document.getElementById('circle-right');
+
+  if (opType === 'INTERSECTION') {
+    intersectionCircle.setAttribute('fill', '#BBF7D0');
+    circleLeft.setAttribute('fill', '#ECFDF5');
+    circleRight.setAttribute('fill', '#F0FDFA');
+  } else if (opType === 'UNION') {
+    intersectionCircle.setAttribute('fill', '#BBF7D0');
+    circleLeft.setAttribute('fill', '#BBF7D0');
+    circleRight.setAttribute('fill', '#BBF7D0');
+  } else if (opType === 'DIFFERENCE') {
+    circleLeft.setAttribute('fill', '#BBF7D0');
+    intersectionCircle.setAttribute('fill', '#ECFDF5');
+    circleRight.setAttribute('fill', '#F0FDFA');
+  } else if (opType === 'SYM_DIFF') {
+    circleLeft.setAttribute('fill', '#BBF7D0');
+    circleRight.setAttribute('fill', '#BBF7D0');
+    intersectionCircle.setAttribute('fill', '#FFFFFF');
+  }
+
+  // Render Result List
+  document.getElementById('result-count-label').innerText = `${resultStudents.length} Anggota`;
+  const listContainer = document.getElementById('standard-result-list');
+  if (resultStudents.length === 0) {
+    listContainer.innerHTML = `<div class="p-3 text-center text-text-muted text-xs italic">Himpunan Kosong (∅)</div>`;
+  } else {
+    listContainer.innerHTML = resultStudents.map(m => `
+      <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+        <span class="font-bold">${m.nama} <span class="text-text-muted font-normal font-mono">(${m.idNum})</span></span>
+        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">${m.p2}</span>
+      </div>
+    `).join('');
+  }
+}
+
+// ==================== PRINSIP INKLUSI-EKSKLUSI ====================
+function switchOpMode(mode) {
+  const isStd = mode === 'standard';
+  document.getElementById('panel-standard-op').className = isStd ? "flex flex-col gap-4" : "flex flex-col gap-4 hidden";
+  document.getElementById('panel-pie-op').className = !isStd ? "flex flex-col gap-4" : "flex flex-col gap-4 hidden";
+  
+  document.getElementById('tab-mode-std').className = isStd ? "py-2 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs transition-all" : "py-2 rounded-lg text-xs font-semibold text-slate-600 transition-all";
+  document.getElementById('tab-mode-pie').className = !isStd ? "py-2 rounded-lg text-xs font-bold bg-white text-emerald-800 shadow-xs transition-all" : "py-2 rounded-lg text-xs font-semibold text-slate-600 transition-all";
+
+  if (!isStd) renderPIECalculation();
+}
+
+function setPIEMode(setsCount) {
+  currentPIEMode = setsCount;
+  document.getElementById('pie-btn-2').className = setsCount === 2 ? "py-2 px-3 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all" : "py-2 px-3 rounded-xl bg-white text-emerald-800 border border-emerald-200 font-semibold text-xs shadow-xs transition-all";
+  document.getElementById('pie-btn-3').className = setsCount === 3 ? "py-2 px-3 rounded-xl bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all" : "py-2 px-3 rounded-xl bg-white text-emerald-800 border border-emerald-200 font-semibold text-xs shadow-xs transition-all";
+  renderPIECalculation();
+}
+
+function renderPIECalculation() {
+  const A = getSetMembers('A');
+  const B = getSetMembers('B');
+  const C = getSetMembers('C');
+
+  const idsA = new Set(A.map(m => m.id));
+  const idsB = new Set(B.map(m => m.id));
+  const idsC = new Set(C.map(m => m.id));
+
+  const container = document.getElementById('pie-calc-container');
+  const unitLabel = currentDatasetId === 1 ? 'Mahasiswa' : 'Dosen';
+
+  if (currentPIEMode === 2) {
+    const interAB = [...idsA].filter(id => idsB.has(id));
+    const unionAB = new Set([...idsA, ...idsB]);
+
+    container.innerHTML = `
+      <div class="flex flex-col gap-2">
+        <h4 class="font-bold text-sm text-text-primary">Rumus Prinsip Inklusi-Eksklusi (2 Himpunan)</h4>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs font-bold text-emerald-800">
+          |A ∪ B| = |A| + |B| - |A ∩ B|
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100"><div class="text-xs text-text-muted">|A|</div><div class="text-lg font-bold text-emerald-800">${A.length}</div></div>
+        <div class="p-2.5 bg-teal-50 rounded-xl border border-teal-100"><div class="text-xs text-text-muted">|B|</div><div class="text-lg font-bold text-teal-800">${B.length}</div></div>
+        <div class="p-2.5 bg-sky-50 rounded-xl border border-sky-100"><div class="text-xs text-text-muted">|A ∩ B|</div><div class="text-lg font-bold text-sky-800">${interAB.length}</div></div>
+      </div>
+      <div class="p-3 bg-emerald-900 text-white rounded-xl flex items-center justify-between text-xs">
+        <span class="font-semibold">Hasil Kardinalitas Gabungan (|A ∪ B|) :</span>
+        <span class="font-bold text-base bg-white/20 px-2 py-0.5 rounded-lg">${A.length} + ${B.length} - ${interAB.length} = ${unionAB.size} ${unitLabel}</span>
+      </div>
+    `;
+  } else {
+    const interAB = [...idsA].filter(id => idsB.has(id));
+    const interAC = [...idsA].filter(id => idsC.has(id));
+    const interBC = [...idsB].filter(id => idsC.has(id));
+    const interABC = [...idsA].filter(id => idsB.has(id) && idsC.has(id));
+    const unionABC = new Set([...idsA, ...idsB, ...idsC]);
+
+    container.innerHTML = `
+      <div class="flex flex-col gap-2">
+        <h4 class="font-bold text-sm text-text-primary">Rumus Prinsip Inklusi-Eksklusi (3 Himpunan)</h4>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] font-bold text-emerald-800 overflow-x-auto">
+          |A∪B∪C| = |A| + |B| + |C| - (|A∩B| + |A∩C| + |B∩C|) + |A∩B∩C|
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-100"><div>|A| = ${A.length}</div></div>
+        <div class="p-2 bg-teal-50 rounded-xl border border-teal-100"><div>|B| = ${B.length}</div></div>
+        <div class="p-2 bg-sky-50 rounded-xl border border-sky-100"><div>|C| = ${C.length}</div></div>
+        <div class="p-2 bg-slate-50 rounded-xl border border-slate-200"><div>|A∩B| = ${interAB.length}</div></div>
+        <div class="p-2 bg-slate-50 rounded-xl border border-slate-200"><div>|A∩C| = ${interAC.length}</div></div>
+        <div class="p-2 bg-slate-50 rounded-xl border border-slate-200"><div>|B∩C| = ${interBC.length}</div></div>
+      </div>
+      <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-200 text-center text-xs">
+        <b>Irisan Ketiganya (|A ∩ B ∩ C|) :</b> ${interABC.length} ${unitLabel}
+      </div>
+      <div class="p-3 bg-emerald-900 text-white rounded-xl flex flex-col gap-1 text-xs">
+        <span class="font-semibold">Kalkulasi Total Gabungan (|A ∪ B ∪ C|) :</span>
+        <span class="font-bold text-sm bg-white/20 px-2 py-1 rounded-lg text-center">
+          (${A.length} + ${B.length} + ${C.length}) - (${interAB.length} + ${interAC.length} + ${interBC.length}) + ${interABC.length} = <span class="text-base text-yellow-300 font-extrabold">${unionABC.size} ${unitLabel}</span>
+        </span>
+      </div>
+    `;
+  }
+}
+
+// ==================== NAVIGASI HALAMAN ====================
+function switchTab(tabName) {
+  document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tabName).classList.add('active');
+
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.className = "nav-btn flex flex-col items-center justify-center gap-1 text-text-muted hover:text-emerald-700 text-xs";
+  });
+  document.getElementById('nav-' + tabName).className = "nav-btn flex flex-col items-center justify-center gap-1 text-emerald-700 font-bold text-xs";
+
+  if (tabName === 'dataset') renderDatasetList();
+  if (tabName === 'operasi') runStandardOperation();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Inisialisasi awal saat halaman dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  switchDataset(1);
+});
+</script>
+</body>
+</html>
